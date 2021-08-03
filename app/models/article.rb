@@ -5,4 +5,8 @@ class Article < ApplicationRecord
   validates :slug, length: { minimum: 5, maximum: 30 }
   validates :title, length: { minimum: 5, maximum: 30 }
   validates :body, length: { minimum: 100 }
+
+  def to_resource
+    ArticleResource.new(self)
+  end
 end
