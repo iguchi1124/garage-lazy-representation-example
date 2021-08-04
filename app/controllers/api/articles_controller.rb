@@ -2,14 +2,12 @@ class Api::ArticlesController < Api::ApplicationController
   include Garage::RestfulActions
 
   def require_resources
-    @resources = Article.includes(:user).page(page).per(per_page)
+    article_ids = Article.page(page).per(per_page).pluck(:id)
+    promises = Current.article_loader.load_many(article_ids).then { |articles| articles.map(&:to_resource) }
+    @resources = promises.sync
   end
 
   private
-
-  def respond_with_resources_options
-    { paginate: true }
-  end
 
   def per_page
     params[:per_page] || 20

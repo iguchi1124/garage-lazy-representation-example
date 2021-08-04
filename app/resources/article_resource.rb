@@ -7,13 +7,16 @@ class ArticleResource
   property :body
   property :user
 
-  delegate :id, :title, :body, to: :@article
+  attr_reader :id, :title, :body
 
   def initialize(article)
-    @article = article
+    @id = article.id
+    @title = article.title
+    @body = article.body
+    @user_promise = Current.user_loader.load(article.user_id).then { |user| user.to_resource }
   end
 
   def user
-    @article.user.to_resource
+    @user ||= @user_promise.sync
   end
 end

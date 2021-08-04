@@ -75,6 +75,9 @@ GEM
     coffee-script-source (1.12.2)
     concurrent-ruby (1.1.9)
     crass (1.0.6)
+    dataloader (1.0.0)
+      concurrent-ruby (~> 1)
+      promise.rb (~> 0.7.3)
     diff-lcs (1.4.4)
     erubi (1.10.0)
     execjs (2.8.1)
@@ -155,6 +158,7 @@ GEM
       multi_xml (~> 0.5)
       rack (>= 1.2, < 3)
     oj (3.12.3)
+    promise.rb (0.7.4)
     puma (5.4.0)
       nio4r (~> 2.0)
     racc (1.5.2)
@@ -281,6 +285,7 @@ DEPENDENCIES
   bcrypt (~> 3.1.7)
   bootsnap (>= 1.4.4)
   byebug
+  dataloader
   factory_bot_rails
   jbuilder (~> 2.7)
   kaminari
