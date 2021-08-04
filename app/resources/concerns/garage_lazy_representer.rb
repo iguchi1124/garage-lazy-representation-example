@@ -1,6 +1,16 @@
 module GarageLazyRepresenter
   extend ActiveSupport::Concern
 
+  def render_hash(options = {})
+    representer_attrs.each do |definition|
+      if definition.lazy?
+        definition.register(self)
+      end
+    end
+
+    super(options)
+  end
+
   class Garage::Representer::Definition
     def lazy?
       false
@@ -20,6 +30,11 @@ module GarageLazyRepresenter
   end
 
   class LazyDefinition < Garage::Representer::Definition
+    # Enqueue promise to dataloader
+    def register(object)
+      object.send(@name)
+    end
+
     def encode(object, responder, selector = nil)
       promise = object.send(@name)
       unless promise.is_a?(Promise)
@@ -36,6 +51,10 @@ module GarageLazyRepresenter
   end
 
   class LazyCollection < Garage::Representer::Collection
+    def register(object)
+      object.send(@name)
+    end
+
     def encode(object, responder, selector = nil)
       promise = object.send(@name)
       unless promise.is_a?(Promise)
