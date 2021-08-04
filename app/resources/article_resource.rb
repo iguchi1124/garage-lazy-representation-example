@@ -5,10 +5,15 @@ class ArticleResource
   property :id
   property :title
   property :body
+  property :user
 
   delegate :id, :title, :body, to: :@article
 
   def initialize(article)
     @article = article
+  end
+
+  def user
+    @article.user.to_resource
   end
 end

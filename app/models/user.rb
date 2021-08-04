@@ -7,7 +7,11 @@ class User < ApplicationRecord
   validates :username, uniqueness: true
   validates :email, uniqueness: true
 
-  def image
+  def image_url
     "https://www.gravatar.com/avatar/#{Digest::MD5.hexdigest(email.strip.downcase)}"
+  end
+
+  def to_resource
+    UserResource.new(self)
   end
 end
