@@ -3,8 +3,8 @@ module GarageLazyRepresenter
 
   def render_hash(options = {})
     representer_attrs.each do |definition|
-      if definition.lazy?
-        definition.register(self)
+      if definition.lazy? && handle_definition?(selector, definition, options)
+        definition.load(self)
       end
     end
 
@@ -31,7 +31,7 @@ module GarageLazyRepresenter
 
   class LazyDefinition < Garage::Representer::Definition
     # Enqueue promise to dataloader
-    def register(object)
+    def load(object)
       object.send(@name)
     end
 
@@ -51,7 +51,7 @@ module GarageLazyRepresenter
   end
 
   class LazyCollection < Garage::Representer::Collection
-    def register(object)
+    def load(object)
       object.send(@name)
     end
 
