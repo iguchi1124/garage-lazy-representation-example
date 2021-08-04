@@ -11,6 +11,11 @@ class Api::ApplicationController < ActionController::API
         Article.find(*ids)
       end
 
+    Current.comment_loader =
+      Dataloader.new do |*ids|
+        Comment.find(*ids)
+      end
+
     Current.user_loader =
       Dataloader.new do |*ids|
         User.find(*ids)

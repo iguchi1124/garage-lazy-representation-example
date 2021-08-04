@@ -2,7 +2,10 @@ require 'rails_helper'
 
 describe Api::ArticlesController, type: :request do
   before do
-    create_list(:article, 50)
+    articles = create_list(:article, 50)
+    articles.each do |article|
+      create_list(:comment, 3, article: article)
+    end
   end
 
   let(:headers) do
