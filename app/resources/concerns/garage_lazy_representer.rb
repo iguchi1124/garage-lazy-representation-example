@@ -1,14 +1,14 @@
 module GarageLazyRepresenter
   extend ActiveSupport::Concern
 
-  def render_hash(options = {})
+  # Load dataloader promises recursively
+  def ensure_promises(options = {})
+    field_selector = options[:selector] || selector
     representer_attrs.each do |definition|
-      if definition.lazy? && handle_definition?(selector, definition, options)
-        definition.load(self)
+      if definition.lazy? && handle_definition?(field_selector, definition, options)
+        definition.ensure_promise(self, field_selector[definition.name])
       end
     end
-
-    super(options)
   end
 
   class Garage::Representer::Definition
@@ -30,18 +30,27 @@ module GarageLazyRepresenter
   end
 
   class LazyDefinition < Garage::Representer::Definition
-    # Enqueue promise to dataloader
-    def load(object)
-      object.send(@name)
+    def promise(object)
+      object.public_send(@name)
     end
 
-    def encode(object, responder, selector = nil)
-      promise = object.send(@name)
-      unless promise.is_a?(Promise)
+    # Enqueue promise to dataloader
+    def ensure_promise(object, selector = nil)
+      batch_promise = promise(object)
+      unless batch_promise.is_a?(Promise)
         raise TypeError, "#{@name} must be wrapped Promise object for lazy loading"
       end
 
-      value = promise.sync
+      batch_promise.then do |resource|
+        if resource.is_a?(GarageLazyRepresenter)
+          resource.represent! unless resource.representer_attrs
+          resource.ensure_promises(selector: selector)
+        end
+      end
+    end
+
+    def encode(object, responder, selector = nil)
+      value = promise(object).sync
       encode_value(value, responder, selector)
     end
 
@@ -51,19 +60,30 @@ module GarageLazyRepresenter
   end
 
   class LazyCollection < Garage::Representer::Collection
-    def load(object)
-      object.send(@name)
+    def promise(object)
+      object.public_send(@name)
     end
 
-    def encode(object, responder, selector = nil)
-      promise = object.send(@name)
-      unless promise.is_a?(Promise)
+    def ensure_promise(object, selector = nil)
+      batch_promise = promise(object)
+      unless batch_promise.is_a?(Promise)
         raise TypeError, "#{@name} must be wrapped Promise object for lazy loading"
       end
 
-      value = promise.sync
-      value.map do |item|
-        encode_value(item, responder, selector)
+      batch_promise.then do |resources|
+        resources.each do |resource|
+          if resource.is_a?(GarageLazyRepresenter)
+            resource.represent! unless resource.representer_attrs
+            resource.ensure_promises(selector: selector)
+          end
+        end
+      end
+    end
+
+    def encode(object, responder, selector = nil)
+      values = promise(object).sync
+      values.map do |value|
+        encode_value(value, responder, selector)
       end
     end
 

@@ -5,13 +5,15 @@ class CommentResource
 
   property :id
   property :body
-  lazy_property :user
+  lazy_property :user, selectable: true
 
-  attr_reader :id, :body, :user
+  delegate :id, :body, to: :@comment
 
   def initialize(comment)
-    @id = comment.id
-    @body = comment.body
-    @user = Current.user_loader.load(comment.user_id).then { |user| user.to_resource }
+    @comment = comment
+  end
+
+  def user
+    @user ||= Current.user_loader.load(@comment.user_id).then { |user| user.to_resource }
   end
 end
