@@ -19,7 +19,7 @@ module GarageLazyLoading
 
   def require_resource
     promise = require_promise
-    @resources = promise.sync.tap do |resource|
+    @resource = promise.sync.tap do |resource|
       resource.represent! unless resource.representer_attrs
       resource.ensure_promises(selector: field_selector)
     end
